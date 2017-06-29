@@ -1,13 +1,11 @@
 package com.ideas2it.chatbot.controllers;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,9 +19,20 @@ public class TimeSheetController {
 	@Autowired
 	private TimeSheetService timeSheetService;
 
-	@RequestMapping(value = "/getAll", method = RequestMethod.GET)
-	public ResponseEntity<List<List<Object>>> get(final HttpServletResponse response) throws Exception {
-		// final List<List<Object>> responseBody = timeSheetService.getAll();
-		return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/updateForDay", method = RequestMethod.POST)
+	public ResponseEntity<String> get(final @RequestBody Map<String, Object> requestBody) throws Exception {
+		Map<String, Object> requestParam = (Map<String, Object>) requestBody.get("parameters");
+		timeSheetService.updateTimeSheetForDay(requestParam);
+		return new ResponseEntity<>("Project Updated successfully", HttpStatus.OK);
+	}
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/updateForPeriod", method = RequestMethod.POST)
+	public ResponseEntity<String> updateTimeSheetForPeriod(final @RequestBody Map<String, Object> requestBody)
+			throws Exception {
+		Map<String, Object> requestParam = (Map<String, Object>) requestBody.get("parameters");
+		timeSheetService.updateTimeSheetForPeriod(requestParam);
+		return new ResponseEntity<>("Project Updated successfully", HttpStatus.OK);
 	}
 }

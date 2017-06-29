@@ -8,8 +8,10 @@ public interface IdeasWebHookService {
 
 	Map<String, Object> getDailyReport(Map<String, Object> requestParameters) throws Exception;
 
-	Map<String, Object> addDailyReport(Map<String, Object> requestParameters) throws Exception;
+	Map<String, Object> updateTimeSheetForDay(Map<String, Object> requestParameters) throws Exception;
 
 	Map<String, Object> updateEmployee(Map<String, Object> requestParameters) throws Exception;
+
+	Map<String, Object> updateTimeSheetForPeriod(Map<String, Object> requestParameters) throws Exception;
 
 }

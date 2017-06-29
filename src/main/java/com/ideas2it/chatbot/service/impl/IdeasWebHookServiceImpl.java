@@ -21,7 +21,7 @@ public class IdeasWebHookServiceImpl implements IdeasWebHookService {
 
 	@Autowired
 	private TimeSheetService timeSheetService;
-	
+
 	@Autowired
 	private EmployeeService employeeService;
 
@@ -74,9 +74,9 @@ public class IdeasWebHookServiceImpl implements IdeasWebHookService {
 	}
 
 	@Override
-	public Map<String, Object> addDailyReport(Map<String, Object> requestParameters) throws Exception {
+	public Map<String, Object> updateTimeSheetForDay(Map<String, Object> requestParameters) throws Exception {
 		Map<String, Object> response = new HashMap<>();
-		timeSheetService.addDailyReport(requestParameters);
+		timeSheetService.updateTimeSheetForDay(requestParameters);
 		return response;
 	}
 
@@ -84,6 +84,13 @@ public class IdeasWebHookServiceImpl implements IdeasWebHookService {
 	public Map<String, Object> updateEmployee(Map<String, Object> requestParameters) throws Exception {
 		Map<String, Object> response = new HashMap<>();
 		employeeService.updateEmployee(requestParameters);
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> updateTimeSheetForPeriod(Map<String, Object> requestParameters) throws Exception {
+		Map<String, Object> response = new HashMap<>();
+		timeSheetService.updateTimeSheetForPeriod(requestParameters);
 		return response;
 	}
 

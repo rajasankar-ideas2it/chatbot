@@ -7,6 +7,8 @@ public interface TimeSheetService {
 
 	public List<List<Object>> getAllDaily() throws Exception;
 
-	void addDailyReport(Map<String, Object> requestParameters) throws Exception;
+	void updateTimeSheetForDay(Map<String, Object> requestParameters) throws Exception;
+
+	void updateTimeSheetForPeriod(Map<String, Object> requestParam) throws Exception;
 
 }

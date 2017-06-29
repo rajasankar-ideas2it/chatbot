@@ -26,4 +26,10 @@ public interface EmployeeService {
 
 	List<Employee> getIncompleteEmployeeList(Map<String, Object> response) throws Exception;
 
+	void updateEmployeeChatId(Employee employee, Map<String, Object> requestParameters) throws Exception;
+
+	void updateEmployeeConversationId(Employee employee, Map<String, Object> requestParameters) throws Exception;
+
+	void updateEmployeeLastUpdated(Employee employee) throws Exception;
+
 }

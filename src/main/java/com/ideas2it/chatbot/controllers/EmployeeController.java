@@ -32,9 +32,28 @@ public class EmployeeController extends BaseController {
 		return new ResponseEntity<>(responseBody, HttpStatus.OK);
 	}
 
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/getIncompleteList", method = RequestMethod.POST)
-	public ResponseEntity<List<Employee>> getIncompleteEmployeeList(@RequestBody Map<String, Object> response) throws Exception {
-		final List<Employee> responseBody = employeeService.getIncompleteEmployeeList(response);
+	public ResponseEntity<List<Employee>> getIncompleteEmployeeList(@RequestBody Map<String, Object> request)
+			throws Exception {
+		Map<String, Object> requestParam = (Map<String, Object>) request.get("parameters");
+		final List<Employee> responseBody = employeeService.getIncompleteEmployeeList(requestParam);
 		return new ResponseEntity<>(responseBody, HttpStatus.OK);
+	}
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/getById", method = RequestMethod.POST)
+	public ResponseEntity<Employee> getEmployee(@RequestBody Map<String, Object> request) throws Exception {
+		Map<String, Object> requestParam = (Map<String, Object>) request.get("parameters");
+		final Employee responseBody = employeeService.getEmployeeByRequest(requestParam);
+		return new ResponseEntity<>(responseBody, HttpStatus.OK);
+	}
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/updateEmployeeByEmailId", method = RequestMethod.POST)
+	public ResponseEntity<String> updateEmployeeByEmailId(@RequestBody Map<String, Object> request) throws Exception {
+		Map<String, Object> requestParam = (Map<String, Object>) request.get("parameters");
+		employeeService.updateEmployee(requestParam);
+		return new ResponseEntity<>("Updated successfully", HttpStatus.OK);
 	}
 }

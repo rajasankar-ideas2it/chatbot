@@ -36,7 +36,10 @@ public class IdeasWebHookController {
 				responseBody = ideaWebHookService.getDailyReport(requestParameters);
 				break;
 			case Constants.ADD_DAILY_REPORT:
-				responseBody = ideaWebHookService.addDailyReport(requestParameters);
+				responseBody = ideaWebHookService.updateTimeSheetForDay(requestParameters);
+				break;
+			case Constants.UPDATE_TIME_SHEET_PERIOD:
+				responseBody = ideaWebHookService.updateTimeSheetForPeriod(requestParameters);
 				break;
 			case Constants.UPDATE_EMPLOYEE:
 				responseBody = ideaWebHookService.updateEmployee(requestParameters);

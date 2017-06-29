@@ -16,4 +16,8 @@ public class Constants {
 
 	public static final String UPDATE_EMPLOYEE = "updateEmployee";
 
+	public static final String LEAVE = "Leave";
+
+	public static final String UPDATE_TIME_SHEET_PERIOD = "updateTimeSheetPeriod";
+
 }
