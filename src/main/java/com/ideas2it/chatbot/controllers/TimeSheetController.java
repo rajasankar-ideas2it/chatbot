@@ -21,18 +21,36 @@ public class TimeSheetController {
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/updateForDay", method = RequestMethod.POST)
-	public ResponseEntity<String> get(final @RequestBody Map<String, Object> requestBody) throws Exception {
+	public ResponseEntity<String> updateForDay(final @RequestBody Map<String, Object> requestBody) throws Exception {
 		Map<String, Object> requestParam = (Map<String, Object>) requestBody.get("parameters");
 		timeSheetService.updateTimeSheetForDay(requestParam);
 		return new ResponseEntity<>("Project Updated successfully", HttpStatus.OK);
 	}
 
 	@SuppressWarnings("unchecked")
-	@RequestMapping(value = "/updateForPeriod", method = RequestMethod.POST)
+	@RequestMapping(value = "/updateForDayList", method = RequestMethod.POST)
+	public ResponseEntity<String> updateForDayList(final @RequestBody Map<String, Object> requestBody)
+			throws Exception {
+		Map<String, Object> requestParam = (Map<String, Object>) requestBody.get("parameters");
+		timeSheetService.updateForDayList(requestParam);
+		return new ResponseEntity<>("Project Updated successfully", HttpStatus.OK);
+	}
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/updateForPeriodOld", method = RequestMethod.POST)
 	public ResponseEntity<String> updateTimeSheetForPeriod(final @RequestBody Map<String, Object> requestBody)
 			throws Exception {
 		Map<String, Object> requestParam = (Map<String, Object>) requestBody.get("parameters");
 		timeSheetService.updateTimeSheetForPeriod(requestParam);
+		return new ResponseEntity<>("Project Updated successfully", HttpStatus.OK);
+	}
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/updateForPeriod", method = RequestMethod.POST)
+	public ResponseEntity<String> bulkUpdateSpreadSheet(final @RequestBody Map<String, Object> requestBody)
+			throws Exception {
+		Map<String, Object> requestParam = (Map<String, Object>) requestBody.get("parameters");
+		timeSheetService.bulkUpdateSpreadSheet(requestParam);
 		return new ResponseEntity<>("Project Updated successfully", HttpStatus.OK);
 	}
 }

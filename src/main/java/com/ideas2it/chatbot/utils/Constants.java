@@ -12,12 +12,18 @@ public class Constants {
 
 	public static final String YES = "Yes";
 
-	public static final int ASCII_B = 66;
+	public static final int ASCII_C = 67;
 
 	public static final String UPDATE_EMPLOYEE = "updateEmployee";
 
 	public static final String LEAVE = "Leave";
 
 	public static final String UPDATE_TIME_SHEET_PERIOD = "updateTimeSheetPeriod";
+
+	public static final String GENERATE_REPORT = "generateReport";
+	
+	public static final String ROWS_MAJOR_DIMENSION = "ROWS";
+	
+	public static final String COLUMNS_MAJOR_DIMENSION = "COLUMNS";
 
 }

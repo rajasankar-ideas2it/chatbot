@@ -107,6 +107,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 		List<List<Object>> currentProjectValue = getValueListForUpdate(project.getName());
 		UpdateValuesResponse updateResponse = sheetsService.updateData(connection, sheetName, currentProjectRange,
 				Constants.RAW_VALUE_INPUT_OPTION, currentProjectValue);
+		updateIsResponded(employee);
+		updateEmployeeLastUpdated(employee);
+	}
+
+	@Override
+	public void updateIsResponded(Employee employee) throws Exception {
 		String isRespondedRange = getIsRespondedRange(employee);
 		List<List<Object>> isRespondedValue = getValueListForUpdate(Constants.YES);
 		sheetsService.updateData(connection, sheetName, isRespondedRange, Constants.RAW_VALUE_INPUT_OPTION,

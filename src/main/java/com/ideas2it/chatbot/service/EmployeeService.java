@@ -32,4 +32,6 @@ public interface EmployeeService {
 
 	void updateEmployeeLastUpdated(Employee employee) throws Exception;
 
+	void updateIsResponded(Employee employee) throws Exception;
+
 }

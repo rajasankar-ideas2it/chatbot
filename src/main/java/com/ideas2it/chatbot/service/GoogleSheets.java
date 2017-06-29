@@ -5,9 +5,9 @@ package com.ideas2it.chatbot.service;
 
 import java.util.List;
 
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
-import com.ideas2it.chatbot.model.Employee;
-import com.ideas2it.chatbot.model.Project;
 
 public interface GoogleSheets {
 
@@ -20,4 +20,6 @@ public interface GoogleSheets {
 
 	List<Object> readHeader(GoogleConnection connection, String sheetName) throws Exception;
 
+	public Spreadsheet createSheetsService(final GoogleConnection gc, String documentName, String sheetName)
+			throws Exception;
 }

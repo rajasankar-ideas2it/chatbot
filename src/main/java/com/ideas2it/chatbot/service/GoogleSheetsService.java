@@ -4,6 +4,7 @@
 package com.ideas2it.chatbot.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,10 +12,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.Sheet;
+import com.google.api.services.sheets.v4.model.SheetProperties;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
+import com.google.api.services.sheets.v4.model.SpreadsheetProperties;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.ideas2it.chatbot.Global;
+import com.ideas2it.chatbot.utils.Constants;
 
 @Service
 public class GoogleSheetsService implements GoogleSheets {
@@ -104,10 +114,38 @@ public class GoogleSheetsService implements GoogleSheets {
 		ValueRange requestBody = new ValueRange();
 		Sheets sheetsService = getSheetsService(connection);
 		requestBody.setValues(value);
+		requestBody.setMajorDimension(Constants.ROWS_MAJOR_DIMENSION);
 		Sheets.Spreadsheets.Values.Update request = sheetsService.spreadsheets().values().update(spreadsheetId,
 				sheetName + "!" + range, requestBody);
 		request.setValueInputOption(valueInputOption);
 		UpdateValuesResponse response = request.execute();
 		return response;
+	}
+
+	public Spreadsheet createSheetsService(final GoogleConnection gc, String documentName, String sheetName)
+			throws Exception {
+		HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+		JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+		Spreadsheet requestBody = new Spreadsheet();
+		Sheets sheetsService = new Sheets.Builder(httpTransport, jsonFactory, gc.getCredentials())
+				.setApplicationName(documentName + "/" + sheetName).build();
+		SpreadsheetProperties properties = new SpreadsheetProperties();
+		properties.setTitle(documentName);
+		requestBody.setProperties(properties);
+		List<Sheet> sheetList = setSheetName(requestBody, sheetName);
+		requestBody.setSheets(sheetList);
+		Sheets.Spreadsheets.Create request = sheetsService.spreadsheets().create(requestBody);
+		Spreadsheet response = request.execute();
+		return response;
+	}
+
+	private List<Sheet> setSheetName(Spreadsheet requestBody, String sheetName) {
+		List<Sheet> sheetList = new ArrayList<>();
+		Sheet sheet = new Sheet();
+		SheetProperties sheetProperties = new SheetProperties();
+		sheetProperties.setTitle(sheetName);
+		sheet.setProperties(sheetProperties);
+		sheetList.add(sheet);
+		return sheetList;
 	}
 }

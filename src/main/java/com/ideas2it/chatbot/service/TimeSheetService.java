@@ -11,4 +11,8 @@ public interface TimeSheetService {
 
 	void updateTimeSheetForPeriod(Map<String, Object> requestParam) throws Exception;
 
+	public void updateForDayList(Map<String, Object> requestParam) throws Exception;
+
+	void bulkUpdateSpreadSheet(Map<String, Object> requestParam) throws Exception;
+
 }

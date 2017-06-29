@@ -29,21 +29,21 @@ public class IdeasWebHookController {
 		Map<String, Object> requestParameters = (Map<String, Object>) requestResult.get("parameters");
 		String actionName = String.valueOf(requestResult.get("action"));
 		switch (actionName) {
-			case Constants.ADDEMPLOYEE_ACTION:
-				responseBody = ideaWebHookService.addEmployee(requestParameters);
-				break;
-			case Constants.GET_DAILY_REPORT:
-				responseBody = ideaWebHookService.getDailyReport(requestParameters);
-				break;
-			case Constants.ADD_DAILY_REPORT:
-				responseBody = ideaWebHookService.updateTimeSheetForDay(requestParameters);
-				break;
-			case Constants.UPDATE_TIME_SHEET_PERIOD:
-				responseBody = ideaWebHookService.updateTimeSheetForPeriod(requestParameters);
-				break;
-			case Constants.UPDATE_EMPLOYEE:
-				responseBody = ideaWebHookService.updateEmployee(requestParameters);
-				break;
+		case Constants.ADDEMPLOYEE_ACTION:
+			responseBody = ideaWebHookService.addEmployee(requestParameters);
+			break;
+		case Constants.GET_DAILY_REPORT:
+			responseBody = ideaWebHookService.getDailyReport(requestParameters);
+			break;
+		case Constants.ADD_DAILY_REPORT:
+			responseBody = ideaWebHookService.updateTimeSheetForDay(requestParameters);
+			break;
+		case Constants.UPDATE_TIME_SHEET_PERIOD:
+			responseBody = ideaWebHookService.updateTimeSheetForPeriod(requestParameters);
+			break;
+		case Constants.UPDATE_EMPLOYEE:
+			responseBody = ideaWebHookService.updateEmployee(requestParameters);
+			break;
 		}
 		return new ResponseEntity<>(responseBody, HttpStatus.OK);
 	}

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.ideas2it.chatbot.model.Employee;
 import com.ideas2it.chatbot.model.Project;
 import com.ideas2it.chatbot.service.EmployeeService;
@@ -58,35 +57,43 @@ public class TimeSheetServiceImpl implements TimeSheetService {
 			updateTimeSheet(employee, project);
 			employeeService.updateCurrentProjectInEmployee(employee, project);
 		} else {
-			updateTimeSheetForLeave(employee, requestParameters);
+			String leaveDateString = String.valueOf(requestParameters.get("date"));
+			LocalDate leaveDate = LocalDate.parse(leaveDateString, dtf);
+			updateTimeSheetForLeave(employee, leaveDate);
 		}
 	}
 
-	private void updateTimeSheetForLeave(Employee employee, Map<String, Object> requestParameters) throws Exception {
-		String leaveDateString = String.valueOf(requestParameters.get("date"));
-		LocalDate leaveDate = LocalDate.parse(leaveDateString, dtf);
-		String range = getRangeForGivenDate(employee, leaveDate);
-		List<List<Object>> values = getValueListForUpdate(Constants.LEAVE);
-		UpdateValuesResponse updateResponse = sheetsService.updateData(connection, dailySheetName, range,
-				Constants.RAW_VALUE_INPUT_OPTION, values);
-	}
+	@Override
+	@SuppressWarnings("unchecked")
+	public void updateForDayList(Map<String, Object> requestParameters) throws Exception {
+		String projectName = String.valueOf(requestParameters.get("project"));
+		Employee employee = employeeService.getEmployeeByRequest(requestParameters);
+		if (!Constants.LEAVE.equalsIgnoreCase(projectName)) {
+			Project project = projectService.getProjectByName(projectName);
+			List<String> projectList = (List<String>) (requestParameters.get("dateList"));
+			for (String projectDateString : projectList) {
+				LocalDate leaveDate = LocalDate.parse(projectDateString, dtf);
+				updateTimeSheetForGivenDate(employee, project, leaveDate);
+			}
+			employeeService.updateCurrentProjectInEmployee(employee, project);
+		} else {
+			updateTimeSheetForLeaveList(employee, requestParameters);
+		}
 
-	private List<List<Object>> getValueListForUpdate(String leave) {
-		List<List<Object>> valueLists = new ArrayList<List<Object>>();
-		List<Object> values = new ArrayList<>();
-		values.add(leave);
-		valueLists.add(values);
-		return valueLists;
 	}
 
 	private String getRangeForGivenDate(Employee employee, LocalDate leaveDate) throws Exception {
 		List<Object> timeSheet = sheetsService.readHeader(connection, dailySheetName);
 		String column = "";
 		if (null != timeSheet && timeSheet.size() > 0) {
-			String dateString = String.valueOf(timeSheet.get(1));
+			String dateString = String.valueOf(timeSheet.get(2));
 			LocalDate firstDate = LocalDate.parse(dateString, dtf);
 			long daysBetween = ChronoUnit.DAYS.between(firstDate, leaveDate);
-			column = Character.toString((char) (daysBetween + Constants.ASCII_B));
+			if (daysBetween > 23) {
+				column = getSpreadSheetRowIndex(daysBetween);
+			} else {
+				column = Character.toString((char) (daysBetween + Constants.ASCII_C));
+			}
 		}
 		return column + employee.getIndex();
 	}
@@ -94,8 +101,7 @@ public class TimeSheetServiceImpl implements TimeSheetService {
 	private void updateTimeSheet(Employee employee, Project project) throws Exception {
 		String range = getRange(employee);
 		List<List<Object>> values = getValueListForUpdate(project);
-		UpdateValuesResponse updateResponse = sheetsService.updateData(connection, dailySheetName, range,
-				Constants.RAW_VALUE_INPUT_OPTION, values);
+		sheetsService.updateData(connection, dailySheetName, range, Constants.RAW_VALUE_INPUT_OPTION, values);
 	}
 
 	@Override
@@ -110,6 +116,63 @@ public class TimeSheetServiceImpl implements TimeSheetService {
 			updateTimeSheetTillCurrentDate(employee, project);
 		}
 		employeeService.updateCurrentProjectInEmployee(employee, project);
+	}
+
+	@Override
+	public void bulkUpdateSpreadSheet(Map<String, Object> requestParam) throws Exception {
+		String projectName = String.valueOf(requestParam.get("project"));
+		Employee employee = employeeService.getEmployeeByRequest(requestParam);
+		Project project = projectService.getProjectByName(projectName);
+		String projectDate = String.valueOf(requestParam.get("projectDate"));
+		if (!"null".equals(projectDate)) {
+			bulkUpdateSpreadSheetForGivenDate(employee, project, LocalDate.parse(projectDate, dtf));
+		} else {
+			bulkUpdateSpreadSheet(employee, project);
+		}
+		employeeService.updateCurrentProjectInEmployee(employee, project);
+	}
+
+	private void bulkUpdateSpreadSheetForGivenDate(Employee employee, Project project, LocalDate projectDate)
+			throws Exception {
+		updateProjectGivenRange(employee, employee.getCurrentProject(),
+				LocalDate.parse(employee.getLastUpdated(), dtf).plusDays(1), projectDate.minusDays(1));
+		updateProjectGivenRange(employee, project.getName(), projectDate, LocalDate.now());
+	}
+
+	private void updateProjectGivenRange(Employee employee, String projectName, LocalDate startDate, LocalDate endDate)
+			throws Exception {
+		long dateDiff = ChronoUnit.DAYS.between(startDate.minusDays(1), endDate);
+		List<List<Object>> values = getValueListForUpdateInRange(projectName, dateDiff);
+		String firstColumn = getRangeForGivenDate(employee, startDate);
+		String lastColumn = getRangeForGivenDate(employee, endDate);
+		String range = firstColumn + ":" + lastColumn;
+		sheetsService.updateData(connection, dailySheetName, range, Constants.RAW_VALUE_INPUT_OPTION, values);
+	}
+
+	private void bulkUpdateSpreadSheet(Employee employee, Project project) throws Exception {
+		LocalDate now = LocalDate.now();
+		LocalDate lastUpdated = LocalDate.parse(employee.getLastUpdated(), dtf);
+		long dateDiff = ChronoUnit.DAYS.between(lastUpdated, now);
+		String range = getProjectRange(employee);
+		List<List<Object>> values = getValueListForUpdateInRange(project.getName(), dateDiff);
+		sheetsService.updateData(connection, dailySheetName, range, Constants.RAW_VALUE_INPUT_OPTION, values);
+	}
+
+	private String getProjectRange(Employee employee) throws Exception {
+		String firstColumn = getRangeForGivenDate(employee,
+				LocalDate.parse(employee.getLastUpdated(), dtf).plusDays(1));
+		String lastColumn = getRangeForGivenDate(employee, LocalDate.now());
+		return firstColumn + ":" + lastColumn;
+	}
+
+	private List<List<Object>> getValueListForUpdateInRange(String name, long limit) {
+		List<List<Object>> valueLists = new ArrayList<List<Object>>();
+		List<Object> values = new ArrayList<>();
+		for (int i = 0; i < limit; i++) {
+			values.add(name);
+		}
+		valueLists.add(values);
+		return valueLists;
 	}
 
 	private void updateTimeSheetForGivenDate(Employee employee, Project project, LocalDate projectDate)
@@ -127,7 +190,8 @@ public class TimeSheetServiceImpl implements TimeSheetService {
 	private void updateTimeSheetTillCurrentDate(Employee employee, Project project) throws Exception {
 		LocalDate currentDate = LocalDate.now();
 		LocalDate lastUpdated = LocalDate.parse(employee.getLastUpdated(), dtf);
-		for (LocalDate date = lastUpdated; date.isBefore(currentDate.plusDays(1)); date = date.plusDays(1)) {
+		for (LocalDate date = lastUpdated.plusDays(1); date
+				.isBefore(currentDate.plusDays(1)); date = date.plusDays(1)) {
 			updateTimeSheetForDay(employee, project.getName(), date);
 		}
 	}
@@ -135,8 +199,7 @@ public class TimeSheetServiceImpl implements TimeSheetService {
 	private void updateTimeSheetForDay(Employee employee, String name, LocalDate date) throws Exception {
 		String range = getRangeForGivenDate(employee, date);
 		List<List<Object>> values = getValueListForUpdate(name);
-		UpdateValuesResponse updateResponse = sheetsService.updateData(connection, dailySheetName, range,
-				Constants.RAW_VALUE_INPUT_OPTION, values);
+		sheetsService.updateData(connection, dailySheetName, range, Constants.RAW_VALUE_INPUT_OPTION, values);
 	}
 
 	private List<List<Object>> getValueListForUpdate(Project project) {
@@ -152,12 +215,60 @@ public class TimeSheetServiceImpl implements TimeSheetService {
 		List<Object> timeSheet = sheetsService.readHeader(connection, dailySheetName);
 		String column = "";
 		if (null != timeSheet && timeSheet.size() > 0) {
-			String dateString = String.valueOf(timeSheet.get(1));
+			String dateString = String.valueOf(timeSheet.get(2));
 			LocalDate firstDate = LocalDate.parse(dateString, dtf);
 			long daysBetween = ChronoUnit.DAYS.between(firstDate, date);
-			column = Character.toString((char) (daysBetween + Constants.ASCII_B));
+			if (daysBetween > 23) {
+				column = getSpreadSheetRowIndex(daysBetween);
+			} else {
+				column = Character.toString((char) (daysBetween + Constants.ASCII_C));
+			}
 		}
 		return column + employee.getIndex();
+	}
+
+	@SuppressWarnings("unchecked")
+	private void updateTimeSheetForLeaveList(Employee employee, Map<String, Object> requestParameters)
+			throws Exception {
+		List<String> leaveDateList = (List<String>) (requestParameters.get("dateList"));
+		for (String leaveDateString : leaveDateList) {
+			LocalDate leaveDate = LocalDate.parse(leaveDateString, dtf);
+			updateTimeSheetForLeave(employee, leaveDate);
+		}
+	}
+
+	private void updateTimeSheetForLeave(Employee employee, LocalDate leaveDate) throws Exception {
+		String range = getRangeForGivenDate(employee, leaveDate);
+		List<List<Object>> values = getValueListForUpdate(Constants.LEAVE);
+		sheetsService.updateData(connection, dailySheetName, range, Constants.RAW_VALUE_INPUT_OPTION, values);
+	}
+
+	private List<List<Object>> getValueListForUpdate(String name) {
+		List<List<Object>> valueLists = new ArrayList<List<Object>>();
+		List<Object> values = new ArrayList<>();
+		values.add(name);
+		valueLists.add(values);
+		return valueLists;
+	}
+
+	private String getSpreadSheetRowIndex(long daysBetween) {
+		String column = "";
+		if (daysBetween == 24) {
+			column = "AA";
+		} else if (daysBetween == 25) {
+			column = "AB";
+		} else if (daysBetween == 26) {
+			column = "AC";
+		} else if (daysBetween == 27) {
+			column = "AD";
+		} else if (daysBetween == 28) {
+			column = "AE";
+		} else if (daysBetween == 29) {
+			column = "AF";
+		} else if (daysBetween == 30) {
+			column = "AG";
+		}
+		return column;
 	}
 
 }
